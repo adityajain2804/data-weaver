@@ -1,136 +1,135 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Search, ChevronDown } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { motion, AnimatePresence } from "framer-motion";
+import { Eye, ChevronDown, Download, Package } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
-import { mockJobs, mockLogs, mockProductData } from "@/lib/mock-data";
-import type { ScrapeJob } from "@/lib/mock-data";
+import { Button } from "@/components/ui/button";
+import { mockJobs, mockProductData } from "@/lib/mock-data";
 
 export default function JobHistory() {
-  const [filter, setFilter] = useState<"all" | "success" | "failed">("all");
-  const [search, setSearch] = useState("");
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
-  const [detailTab, setDetailTab] = useState<"logs" | "results">("logs");
-
-  const filtered = mockJobs
-    .filter((j) => filter === "all" || j.status === filter)
-    .filter((j) => j.url.toLowerCase().includes(search.toLowerCase()));
+  const [resultView, setResultView] = useState<"cards" | "json">("cards");
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold tracking-tight text-foreground">Job History</h1>
-        <p className="mt-1 text-[13px] text-muted-foreground">Browse and inspect past scraping jobs.</p>
+        <p className="mt-1 text-[13px] text-muted-foreground">View past extraction jobs and their results.</p>
       </div>
 
-      {/* Filters */}
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" strokeWidth={1.5} />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Filter by URL..."
-            className="border-border bg-card pl-10 text-[13px] text-foreground placeholder:text-muted-foreground"
-          />
-        </div>
-        <div className="flex gap-1">
-          {(["all", "success", "failed"] as const).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`rounded-md px-3 py-1.5 text-[11px] font-medium capitalize transition-colors ${
-                filter === f ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-surface-alt"
-              }`}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Table */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: [0.2, 0, 0, 1] }}
-        className="rounded-lg border border-border bg-card"
+        transition={{ duration: 0.3, ease: [0.2, 0, 0, 1] as [number, number, number, number] }}
+        className="rounded-xl border border-border bg-card shadow-sm overflow-hidden"
       >
-        {/* Header */}
-        <div className="grid grid-cols-[1fr_100px_140px_100px] gap-4 border-b border-border px-5 py-2.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+        <div className="grid grid-cols-[80px_1fr_auto_auto_auto_auto] gap-4 border-b border-border bg-muted/50 px-5 py-2.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          <span>Job ID</span>
           <span>URL</span>
+          <span>Fields</span>
+          <span>Category</span>
           <span>Status</span>
-          <span>Timestamp</span>
-          <span>Duration</span>
+          <span>Actions</span>
         </div>
 
-        {/* Rows */}
         <div className="divide-y divide-border">
-          {filtered.map((job) => (
+          {mockJobs.map((job) => (
             <div key={job.id}>
-              <button
-                onClick={() => setExpandedJob(expandedJob === job.id ? null : job.id)}
-                className="grid w-full grid-cols-[1fr_100px_140px_100px] gap-4 items-center px-5 py-3 text-left transition-colors hover:bg-surface-alt"
-              >
-                <span className="truncate font-mono text-[13px] text-foreground">{job.url}</span>
-                <StatusBadge status={job.status} />
-                <span className="text-[12px] text-muted-foreground">
-                  {new Date(job.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                </span>
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-[12px] text-muted-foreground tabular-nums">{job.duration}ms</span>
-                  <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${expandedJob === job.id ? 'rotate-180' : ''}`} strokeWidth={1.5} />
+              <div className="grid grid-cols-[80px_1fr_auto_auto_auto_auto] gap-4 items-center px-5 py-3 transition-colors hover:bg-muted/30">
+                <span className="font-mono text-[12px] text-muted-foreground">{job.id.replace("job-", "#")}</span>
+                <span className="truncate font-mono text-[12px] text-foreground">{job.url}</span>
+                <div className="flex flex-wrap gap-1 max-w-[180px]">
+                  {(job.selectedFields || []).slice(0, 3).map((f) => (
+                    <span key={f} className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">{f}</span>
+                  ))}
+                  {(job.selectedFields || []).length > 3 && (
+                    <span className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-primary">+{(job.selectedFields || []).length - 3}</span>
+                  )}
                 </div>
-              </button>
-
-              {/* Expanded Detail */}
-              {expandedJob === job.id && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="border-t border-border bg-background"
+                <span className="rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">{job.category || "—"}</span>
+                <StatusBadge status={job.status} />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setExpandedJob(expandedJob === job.id ? null : job.id)}
+                  className="text-[11px] text-muted-foreground hover:text-foreground h-7 px-2"
                 >
-                  <div className="flex gap-1 border-b border-border px-5 py-2">
-                    {(["logs", "results"] as const).map((tab) => (
-                      <button
-                        key={tab}
-                        onClick={() => setDetailTab(tab)}
-                        className={`rounded-md px-3 py-1 text-[11px] font-medium capitalize transition-colors ${
-                          detailTab === tab ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
-                        }`}
-                      >
-                        {tab}
-                      </button>
-                    ))}
-                  </div>
+                  <Eye className="mr-1 h-3 w-3" />
+                  {expandedJob === job.id ? "Close" : "View"}
+                  <ChevronDown className={`ml-1 h-3 w-3 transition-transform ${expandedJob === job.id ? "rotate-180" : ""}`} />
+                </Button>
+              </div>
 
-                  <div className="max-h-64 overflow-auto p-4">
-                    {detailTab === "logs" ? (
-                      <div className="space-y-0.5 font-mono text-[12px]">
-                        {mockLogs.map((log, i) => (
-                          <div key={i} className="flex gap-3 rounded px-2 py-0.5 hover:bg-surface-alt">
-                            <span className="shrink-0 text-muted-foreground">{log.timestamp}</span>
-                            <span className={
-                              log.level === "error" ? "text-destructive" :
-                              log.level === "warning" ? "text-warning" :
-                              log.level === "success" ? "text-success" :
-                              "text-foreground"
-                            }>
-                              {log.message}
-                            </span>
+              <AnimatePresence>
+                {expandedJob === job.id && job.status === "success" && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="border-t border-border bg-muted/20 px-5 py-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[12px] font-medium text-foreground">Extracted Data</span>
+                        <div className="flex items-center gap-2">
+                          <div className="flex gap-0.5 rounded-lg bg-muted p-0.5">
+                            {(["cards", "json"] as const).map((mode) => (
+                              <button
+                                key={mode}
+                                onClick={() => setResultView(mode)}
+                                className={`rounded-md px-2.5 py-1 text-[10px] font-medium transition-all ${
+                                  resultView === mode ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+                                }`}
+                              >
+                                {mode === "cards" ? "Cards" : "JSON"}
+                              </button>
+                            ))}
                           </div>
-                        ))}
+                          <Button variant="outline" size="sm" className="text-[10px] h-6 px-2 border-border">
+                            <Download className="mr-1 h-3 w-3" /> Export
+                          </Button>
+                        </div>
                       </div>
-                    ) : (
-                      <pre className="font-mono text-[12px] text-foreground">
-                        {JSON.stringify(mockProductData, null, 2)}
-                      </pre>
-                    )}
-                  </div>
-                </motion.div>
-              )}
+
+                      {resultView === "cards" ? (
+                        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                          {mockProductData.slice(0, 3).map((product, i) => (
+                            <div key={i} className="rounded-lg border border-border bg-card p-3 space-y-1.5">
+                              <div className="flex items-start gap-2">
+                                <div className="h-8 w-8 rounded bg-muted flex items-center justify-center shrink-0">
+                                  <Package className="h-3.5 w-3.5 text-muted-foreground" />
+                                </div>
+                                <p className="text-[12px] font-medium text-foreground leading-tight">{product.title}</p>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="font-mono text-sm font-semibold text-primary">{product.price}</span>
+                                <StatusBadge status={product.availability === "In Stock" ? "success" : "pending"} />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <pre className="max-h-48 overflow-auto rounded-lg border border-border bg-background p-3 font-mono text-[11px] text-foreground">
+                          {JSON.stringify(mockProductData.slice(0, 3), null, 2)}
+                        </pre>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+                {expandedJob === job.id && job.status === "failed" && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="border-t border-border bg-destructive/5 px-5 py-4">
+                      <p className="text-[12px] font-medium text-destructive">{job.error}</p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           ))}
         </div>
