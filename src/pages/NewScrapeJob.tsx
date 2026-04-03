@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Globe, Loader2, CheckCircle2, XCircle, ChevronDown, Info, Download, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { mockProductData } from "@/lib/mock-data";
 import { StatusBadge } from "@/components/StatusBadge";
 import { toast } from "sonner";
+import { DLTPipeline, type LayerStatus } from "@/components/DLTPipeline";
 
 type ScrapeStatus = "idle" | "running" | "success" | "error";
 
@@ -40,6 +41,10 @@ export default function NewScrapeJob() {
   const [status, setStatus] = useState<ScrapeStatus>("idle");
   const [showResults, setShowResults] = useState(false);
   const [viewMode, setViewMode] = useState<"cards" | "json">("cards");
+  const [bronzeStatus, setBronzeStatus] = useState<LayerStatus>("pending");
+  const [silverStatus, setSilverStatus] = useState<LayerStatus>("pending");
+  const [goldStatus, setGoldStatus] = useState<LayerStatus>("pending");
+  const [showPipeline, setShowPipeline] = useState(false);
 
   const userSelected = selectedFields.filter((f) => f !== "product_url");
   const usingDefaults = userSelected.length === 0;
@@ -56,6 +61,13 @@ export default function NewScrapeJob() {
     );
   };
 
+  const resetPipeline = () => {
+    setBronzeStatus("pending");
+    setSilverStatus("pending");
+    setGoldStatus("pending");
+    setShowPipeline(false);
+  };
+
   const handleRun = () => {
     if (!url) {
       toast.error("Please enter a target URL");
@@ -63,21 +75,41 @@ export default function NewScrapeJob() {
     }
     setStatus("running");
     setShowResults(false);
+    setShowPipeline(true);
+    resetPipeline();
     toast.info("Scrape job started…");
+
+    const fail = Math.random() < 0.15;
+
+    // Bronze: start immediately
+    setBronzeStatus("processing");
     setTimeout(() => {
-      const success = Math.random() > 0.15;
-      setStatus(success ? "success" : "error");
-      if (success) {
-        setShowResults(true);
-        toast.success("Data extracted successfully!");
-      } else {
-        toast.error("Scrape failed — please retry");
-      }
-    }, 2800);
+      setBronzeStatus("completed");
+      // Silver: start after bronze
+      setSilverStatus("processing");
+      setTimeout(() => {
+        if (fail) {
+          setSilverStatus("pending");
+          setStatus("error");
+          toast.error("Scrape failed — please retry");
+          return;
+        }
+        setSilverStatus("completed");
+        // Gold: start after silver
+        setGoldStatus("processing");
+        setTimeout(() => {
+          setGoldStatus("completed");
+          setStatus("success");
+          setShowResults(true);
+          toast.success("Data extracted successfully!");
+        }, 1200);
+      }, 1400);
+    }, 1200);
   };
 
   const handleRetry = () => {
     setStatus("idle");
+    resetPipeline();
     setTimeout(handleRun, 100);
   };
 
@@ -290,6 +322,24 @@ export default function NewScrapeJob() {
                 </Button>
               </>
             )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* DLT Pipeline Visualization */}
+      <AnimatePresence>
+        {showPipeline && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <DLTPipeline
+              bronzeStatus={bronzeStatus}
+              silverStatus={silverStatus}
+              goldStatus={goldStatus}
+            />
           </motion.div>
         )}
       </AnimatePresence>
