@@ -326,6 +326,24 @@ export default function NewScrapeJob() {
         )}
       </AnimatePresence>
 
+      {/* DLT Pipeline Visualization */}
+      <AnimatePresence>
+        {showPipeline && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <DLTPipeline
+              bronzeStatus={bronzeStatus}
+              silverStatus={silverStatus}
+              goldStatus={goldStatus}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Results */}
       <AnimatePresence>
         {showResults && (
