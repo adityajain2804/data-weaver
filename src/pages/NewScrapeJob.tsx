@@ -109,6 +109,7 @@ export default function NewScrapeJob() {
   const handleRetry = () => {
     setStatus("idle");
     resetPipeline();
+    setShowPipeline(false);
     setTimeout(handleRun, 100);
   };
 
