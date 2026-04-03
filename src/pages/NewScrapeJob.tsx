@@ -41,6 +41,10 @@ export default function NewScrapeJob() {
   const [status, setStatus] = useState<ScrapeStatus>("idle");
   const [showResults, setShowResults] = useState(false);
   const [viewMode, setViewMode] = useState<"cards" | "json">("cards");
+  const [bronzeStatus, setBronzeStatus] = useState<LayerStatus>("pending");
+  const [silverStatus, setSilverStatus] = useState<LayerStatus>("pending");
+  const [goldStatus, setGoldStatus] = useState<LayerStatus>("pending");
+  const [showPipeline, setShowPipeline] = useState(false);
 
   const userSelected = selectedFields.filter((f) => f !== "product_url");
   const usingDefaults = userSelected.length === 0;
