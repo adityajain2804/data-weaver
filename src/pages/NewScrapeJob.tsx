@@ -65,7 +65,6 @@ export default function NewScrapeJob() {
     setBronzeStatus("pending");
     setSilverStatus("pending");
     setGoldStatus("pending");
-    setShowPipeline(false);
   };
 
   const handleRun = () => {
@@ -75,8 +74,8 @@ export default function NewScrapeJob() {
     }
     setStatus("running");
     setShowResults(false);
-    setShowPipeline(true);
     resetPipeline();
+    setShowPipeline(true);
     toast.info("Scrape job started…");
 
     const fail = Math.random() < 0.15;
@@ -110,6 +109,7 @@ export default function NewScrapeJob() {
   const handleRetry = () => {
     setStatus("idle");
     resetPipeline();
+    setShowPipeline(false);
     setTimeout(handleRun, 100);
   };
 
