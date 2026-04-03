@@ -61,6 +61,13 @@ export default function NewScrapeJob() {
     );
   };
 
+  const resetPipeline = () => {
+    setBronzeStatus("pending");
+    setSilverStatus("pending");
+    setGoldStatus("pending");
+    setShowPipeline(false);
+  };
+
   const handleRun = () => {
     if (!url) {
       toast.error("Please enter a target URL");
@@ -68,21 +75,41 @@ export default function NewScrapeJob() {
     }
     setStatus("running");
     setShowResults(false);
+    setShowPipeline(true);
+    resetPipeline();
     toast.info("Scrape job started…");
+
+    const fail = Math.random() < 0.15;
+
+    // Bronze: start immediately
+    setBronzeStatus("processing");
     setTimeout(() => {
-      const success = Math.random() > 0.15;
-      setStatus(success ? "success" : "error");
-      if (success) {
-        setShowResults(true);
-        toast.success("Data extracted successfully!");
-      } else {
-        toast.error("Scrape failed — please retry");
-      }
-    }, 2800);
+      setBronzeStatus("completed");
+      // Silver: start after bronze
+      setSilverStatus("processing");
+      setTimeout(() => {
+        if (fail) {
+          setSilverStatus("pending");
+          setStatus("error");
+          toast.error("Scrape failed — please retry");
+          return;
+        }
+        setSilverStatus("completed");
+        // Gold: start after silver
+        setGoldStatus("processing");
+        setTimeout(() => {
+          setGoldStatus("completed");
+          setStatus("success");
+          setShowResults(true);
+          toast.success("Data extracted successfully!");
+        }, 1200);
+      }, 1400);
+    }, 1200);
   };
 
   const handleRetry = () => {
     setStatus("idle");
+    resetPipeline();
     setTimeout(handleRun, 100);
   };
 
