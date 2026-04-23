@@ -1,24 +1,28 @@
 export interface ScrapeJob {
   id: string;
   url: string;
-  status: "success" | "failed" | "running" | "pending";
+  status: "success" | "failed" | "running" | "pending" | "completed" | "stopped";
   timestamp: string;
   duration: number;
   itemsScraped?: number;
   error?: string;
+  last_error?: string | null;
   selectedFields?: string[];
   category?: string;
+  crawl_depth?: number;
+  concurrency?: number;
+  modular?: boolean;
 }
 
 export const mockJobs: ScrapeJob[] = [
-  { id: "job-001", url: "https://store.example.com/products", status: "success", timestamp: "2026-03-25T10:23:00Z", duration: 2340, itemsScraped: 48, selectedFields: ["Product Name", "Price", "Product URL", "Image URL", "Rating"], category: "Sofa" },
-  { id: "job-002", url: "https://shop.demo.io/electronics", status: "success", timestamp: "2026-03-25T09:45:00Z", duration: 1890, itemsScraped: 32, selectedFields: ["Product Name", "Price", "MRP", "Discount %", "Product URL"], category: "Laptop" },
-  { id: "job-003", url: "https://market.test.com/shoes", status: "failed", timestamp: "2026-03-25T09:12:00Z", duration: 5200, error: "Timeout: Page load exceeded 30s", selectedFields: ["Product Name", "Price", "Product URL", "Availability"], category: "Shoes" },
-  { id: "job-004", url: "https://deals.example.org/phones", status: "success", timestamp: "2026-03-25T08:30:00Z", duration: 3100, itemsScraped: 24, selectedFields: ["Product Name", "Price", "Brand", "Rating", "Product URL", "Image URL"], category: "Phone" },
-  { id: "job-005", url: "https://price.tracker.io/laptops", status: "failed", timestamp: "2026-03-25T07:55:00Z", duration: 8400, error: "403 Forbidden - Access Denied", selectedFields: ["Product Name", "Price", "Product URL"], category: "Laptop" },
-  { id: "job-006", url: "https://store.example.com/cameras", status: "success", timestamp: "2026-03-24T22:10:00Z", duration: 1540, itemsScraped: 16, selectedFields: ["Product Name", "Price", "MRP", "Discount %", "Product URL", "Image URL"], category: "Camera" },
-  { id: "job-007", url: "https://shop.demo.io/tablets", status: "success", timestamp: "2026-03-24T20:45:00Z", duration: 2780, itemsScraped: 55, selectedFields: ["Product Name", "Price", "Product URL", "Image URL"], category: "Tablet" },
-  { id: "job-008", url: "https://market.test.com/watches", status: "success", timestamp: "2026-03-24T18:30:00Z", duration: 1920, itemsScraped: 21, selectedFields: ["Product Name", "Price", "Brand", "Product URL"], category: "Watch" },
+  { id: "job-001", url: "https://store.example.com/products", status: "completed", timestamp: "2026-03-25T10:23:00Z", duration: 2340, itemsScraped: 48, selectedFields: ["product_name", "price", "product_url", "image_url", "rating"], category: "Sofa", crawl_depth: 1 },
+  { id: "job-002", url: "https://shop.demo.io/electronics", status: "completed", timestamp: "2026-03-25T09:45:00Z", duration: 1890, itemsScraped: 32, selectedFields: ["product_name", "price", "mrp", "discount", "product_url"], category: "Laptop", crawl_depth: 3 },
+  { id: "job-003", url: "https://market.test.com/shoes", status: "failed", timestamp: "2026-03-25T09:12:00Z", duration: 5200, error: "Timeout: Page load exceeded 30s", last_error: "Timeout: Page load exceeded 30s", selectedFields: ["product_name", "price", "product_url", "availability"], category: "Shoes", crawl_depth: 1 },
+  { id: "job-004", url: "https://deals.example.org/phones", status: "completed", timestamp: "2026-03-25T08:30:00Z", duration: 3100, itemsScraped: 24, selectedFields: ["product_name", "price", "brand", "rating", "product_url", "image_url"], category: "Phone", crawl_depth: 3 },
+  { id: "job-005", url: "https://price.tracker.io/laptops", status: "failed", timestamp: "2026-03-25T07:55:00Z", duration: 8400, error: "403 Forbidden - Access Denied", last_error: "403 Forbidden - Access Denied", selectedFields: ["product_name", "price", "product_url"], category: "Laptop", crawl_depth: 50 },
+  { id: "job-006", url: "https://store.example.com/cameras", status: "completed", timestamp: "2026-03-24T22:10:00Z", duration: 1540, itemsScraped: 16, selectedFields: ["product_name", "price", "mrp", "discount", "product_url", "image_url"], category: "Camera", crawl_depth: 1 },
+  { id: "job-007", url: "https://shop.demo.io/tablets", status: "completed", timestamp: "2026-03-24T20:45:00Z", duration: 2780, itemsScraped: 55, selectedFields: ["product_name", "price", "product_url", "image_url"], category: "Tablet", crawl_depth: 3 },
+  { id: "job-008", url: "https://market.test.com/watches", status: "completed", timestamp: "2026-03-24T18:30:00Z", duration: 1920, itemsScraped: 21, selectedFields: ["product_name", "price", "brand", "product_url"], category: "Watch", crawl_depth: 1 },
 ];
 
 export interface ProductDataItem {
@@ -33,7 +37,7 @@ export interface ProductDataItem {
   productUrl: string;
   previousPrice: string;
   previousDiscount: string;
-  priceChangePct: number; // negative = drop
+  priceChangePct: number;
   lastUpdated: string;
   sku: string;
   seller: string;
@@ -121,20 +125,6 @@ export const mockProductData: ProductDataItem[] = [
       { date: "Apr 23", price: 429, discount: 4 },
     ],
   },
-];
-
-export const mockLogs = [
-  { timestamp: "10:23:01.234", level: "info" as const, message: "Launching browser instance..." },
-  { timestamp: "10:23:02.456", level: "info" as const, message: "Navigating to https://store.example.com/products" },
-  { timestamp: "10:23:03.789", level: "info" as const, message: "Waiting for selector: .product-grid" },
-  { timestamp: "10:23:05.012", level: "success" as const, message: "Page fully loaded (JS rendered)" },
-  { timestamp: "10:23:05.234", level: "info" as const, message: "Extracting product data..." },
-  { timestamp: "10:23:06.456", level: "info" as const, message: "Found 48 product elements" },
-  { timestamp: "10:23:07.789", level: "success" as const, message: "Data extraction complete — 48 items scraped" },
-  { timestamp: "10:23:08.012", level: "info" as const, message: "Closing browser instance" },
-  { timestamp: "10:23:08.234", level: "error" as const, message: "Network error: Failed to fetch https://cdn.example.com/image-404.jpg (404)" },
-  { timestamp: "10:23:08.456", level: "warning" as const, message: "Rate limit warning: 429 response from API endpoint" },
-  { timestamp: "10:23:09.012", level: "info" as const, message: "Job completed successfully" },
 ];
 
 export const mockChartData = [
