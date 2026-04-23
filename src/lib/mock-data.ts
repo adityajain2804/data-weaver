@@ -21,12 +21,106 @@ export const mockJobs: ScrapeJob[] = [
   { id: "job-008", url: "https://market.test.com/watches", status: "success", timestamp: "2026-03-24T18:30:00Z", duration: 1920, itemsScraped: 21, selectedFields: ["Product Name", "Price", "Brand", "Product URL"], category: "Watch" },
 ];
 
-export const mockProductData = [
-  { title: "MacBook Pro 14\" M3", price: "$1,599.00", mrp: "$1,799.00", discount: "11%", availability: "In Stock", rating: 4.8, brand: "Apple", imageUrl: "https://via.placeholder.com/200x200?text=MacBook", productUrl: "https://store.example.com/macbook-pro" },
-  { title: "Sony WH-1000XM5", price: "$349.99", mrp: "$399.99", discount: "13%", availability: "In Stock", rating: 4.7, brand: "Sony", imageUrl: "https://via.placeholder.com/200x200?text=Sony+XM5", productUrl: "https://store.example.com/sony-xm5" },
-  { title: "Samsung Galaxy S24 Ultra", price: "$1,299.99", mrp: "$1,419.99", discount: "8%", availability: "Low Stock", rating: 4.6, brand: "Samsung", imageUrl: "https://via.placeholder.com/200x200?text=Galaxy+S24", productUrl: "https://store.example.com/galaxy-s24" },
-  { title: "iPad Air M2", price: "$599.00", mrp: "$649.00", discount: "8%", availability: "In Stock", rating: 4.5, brand: "Apple", imageUrl: "https://via.placeholder.com/200x200?text=iPad+Air", productUrl: "https://store.example.com/ipad-air" },
-  { title: "Bose QC Ultra Headphones", price: "$429.00", mrp: "$449.00", discount: "4%", availability: "Out of Stock", rating: 4.4, brand: "Bose", imageUrl: "https://via.placeholder.com/200x200?text=Bose+QC", productUrl: "https://store.example.com/bose-qc" },
+export interface ProductDataItem {
+  title: string;
+  price: string;
+  mrp: string;
+  discount: string;
+  availability: string;
+  rating: number;
+  brand: string;
+  imageUrl: string;
+  productUrl: string;
+  previousPrice: string;
+  previousDiscount: string;
+  priceChangePct: number; // negative = drop
+  lastUpdated: string;
+  sku: string;
+  seller: string;
+  priceHistory: { date: string; price: number; discount: number }[];
+}
+
+export const mockProductData: ProductDataItem[] = [
+  {
+    title: "MacBook Pro 14\" M3", price: "$1,599.00", mrp: "$1,799.00", discount: "11%",
+    availability: "In Stock", rating: 4.8, brand: "Apple",
+    imageUrl: "https://via.placeholder.com/400x400?text=MacBook",
+    productUrl: "https://store.example.com/macbook-pro",
+    previousPrice: "$1,699.00", previousDiscount: "6%", priceChangePct: -5.9,
+    lastUpdated: "2026-04-22T14:20:00Z", sku: "APL-MBP14-M3-512",
+    seller: "store.example.com",
+    priceHistory: [
+      { date: "Apr 16", price: 1799, discount: 0 },
+      { date: "Apr 18", price: 1749, discount: 3 },
+      { date: "Apr 20", price: 1699, discount: 6 },
+      { date: "Apr 22", price: 1649, discount: 8 },
+      { date: "Apr 23", price: 1599, discount: 11 },
+    ],
+  },
+  {
+    title: "Sony WH-1000XM5", price: "$349.99", mrp: "$399.99", discount: "13%",
+    availability: "In Stock", rating: 4.7, brand: "Sony",
+    imageUrl: "https://via.placeholder.com/400x400?text=Sony+XM5",
+    productUrl: "https://store.example.com/sony-xm5",
+    previousPrice: "$379.99", previousDiscount: "5%", priceChangePct: -7.9,
+    lastUpdated: "2026-04-22T10:10:00Z", sku: "SNY-WH1000XM5-BLK",
+    seller: "shop.demo.io",
+    priceHistory: [
+      { date: "Apr 16", price: 399, discount: 0 },
+      { date: "Apr 18", price: 389, discount: 2 },
+      { date: "Apr 20", price: 379, discount: 5 },
+      { date: "Apr 22", price: 359, discount: 10 },
+      { date: "Apr 23", price: 349, discount: 13 },
+    ],
+  },
+  {
+    title: "Samsung Galaxy S24 Ultra", price: "$1,299.99", mrp: "$1,419.99", discount: "8%",
+    availability: "Low Stock", rating: 4.6, brand: "Samsung",
+    imageUrl: "https://via.placeholder.com/400x400?text=Galaxy+S24",
+    productUrl: "https://store.example.com/galaxy-s24",
+    previousPrice: "$1,249.99", previousDiscount: "12%", priceChangePct: 4.0,
+    lastUpdated: "2026-04-22T09:00:00Z", sku: "SMS-S24U-256",
+    seller: "store.example.com",
+    priceHistory: [
+      { date: "Apr 16", price: 1419, discount: 0 },
+      { date: "Apr 18", price: 1319, discount: 7 },
+      { date: "Apr 20", price: 1249, discount: 12 },
+      { date: "Apr 22", price: 1279, discount: 10 },
+      { date: "Apr 23", price: 1299, discount: 8 },
+    ],
+  },
+  {
+    title: "iPad Air M2", price: "$599.00", mrp: "$649.00", discount: "8%",
+    availability: "In Stock", rating: 4.5, brand: "Apple",
+    imageUrl: "https://via.placeholder.com/400x400?text=iPad+Air",
+    productUrl: "https://store.example.com/ipad-air",
+    previousPrice: "$619.00", previousDiscount: "5%", priceChangePct: -3.2,
+    lastUpdated: "2026-04-22T08:45:00Z", sku: "APL-IPADAIR-M2-128",
+    seller: "store.example.com",
+    priceHistory: [
+      { date: "Apr 16", price: 649, discount: 0 },
+      { date: "Apr 18", price: 639, discount: 2 },
+      { date: "Apr 20", price: 619, discount: 5 },
+      { date: "Apr 22", price: 609, discount: 6 },
+      { date: "Apr 23", price: 599, discount: 8 },
+    ],
+  },
+  {
+    title: "Bose QC Ultra Headphones", price: "$429.00", mrp: "$449.00", discount: "4%",
+    availability: "Out of Stock", rating: 4.4, brand: "Bose",
+    imageUrl: "https://via.placeholder.com/400x400?text=Bose+QC",
+    productUrl: "https://store.example.com/bose-qc",
+    previousPrice: "$419.00", previousDiscount: "7%", priceChangePct: 2.4,
+    lastUpdated: "2026-04-22T07:30:00Z", sku: "BOS-QCU-BLK",
+    seller: "market.test.com",
+    priceHistory: [
+      { date: "Apr 16", price: 449, discount: 0 },
+      { date: "Apr 18", price: 439, discount: 2 },
+      { date: "Apr 20", price: 419, discount: 7 },
+      { date: "Apr 22", price: 424, discount: 5 },
+      { date: "Apr 23", price: 429, discount: 4 },
+    ],
+  },
 ];
 
 export const mockLogs = [
