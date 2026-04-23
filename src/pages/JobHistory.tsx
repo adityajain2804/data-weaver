@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, ChevronDown, Download, Package } from "lucide-react";
+import { Eye, ChevronDown, Download, Package, TrendingDown, TrendingUp } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
-import { mockJobs, mockProductData } from "@/lib/mock-data";
+import { mockJobs, mockProductData, type ProductDataItem } from "@/lib/mock-data";
+import { ProductDetailDialog } from "@/components/ProductDetailDialog";
 
 export default function JobHistory() {
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
   const [resultView, setResultView] = useState<"cards" | "json">("cards");
+  const [selectedProduct, setSelectedProduct] = useState<ProductDataItem | null>(null);
 
   return (
     <div className="space-y-6">
