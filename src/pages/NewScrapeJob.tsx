@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Globe, Loader2, CheckCircle2, XCircle, ChevronDown, Info, Download, Package } from "lucide-react";
+import { Play, Globe, Loader2, CheckCircle2, XCircle, ChevronDown, Info, Download, Package, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -8,6 +8,7 @@ import { mockProductData } from "@/lib/mock-data";
 import { StatusBadge } from "@/components/StatusBadge";
 import { toast } from "sonner";
 import { DLTPipeline, type LayerStatus } from "@/components/DLTPipeline";
+import { ScheduleBuilder, type ExecutionMode, type ScheduleConfig } from "@/components/ScheduleBuilder";
 
 type ScrapeStatus = "idle" | "running" | "success" | "error";
 
@@ -45,6 +46,23 @@ export default function NewScrapeJob() {
   const [silverStatus, setSilverStatus] = useState<LayerStatus>("pending");
   const [goldStatus, setGoldStatus] = useState<LayerStatus>("pending");
   const [showPipeline, setShowPipeline] = useState(false);
+  const [executionMode, setExecutionMode] = useState<ExecutionMode>("trigger");
+  const [schedule, setSchedule] = useState<ScheduleConfig>(() => {
+    const d = new Date();
+    d.setMinutes(0, 0, 0);
+    d.setHours(d.getHours() + 1);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const startAt = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    return {
+      startAt,
+      recurrence: "daily",
+      weekDays: [1, 2, 3, 4, 5],
+      intervalHours: 6,
+      cronExpression: "0 9 * * 1-5",
+      durationMinutes: 30,
+      maxRunsPerWeek: 35,
+    };
+  });
 
   const userSelected = selectedFields.filter((f) => f !== "product_url");
   const usingDefaults = userSelected.length === 0;
@@ -72,6 +90,19 @@ export default function NewScrapeJob() {
       toast.error("Please enter a target URL");
       return;
     }
+
+    if (executionMode === "schedule") {
+      if (!schedule.startAt) {
+        toast.error("Please choose a start date & time");
+        return;
+      }
+      const startLabel = new Date(schedule.startAt).toLocaleString(undefined, {
+        month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
+      });
+      toast.success(`Schedule saved — first run ${startLabel}`);
+      return;
+    }
+
     setStatus("running");
     setShowResults(false);
     resetPipeline();
@@ -268,8 +299,22 @@ export default function NewScrapeJob() {
         </AnimatePresence>
       </motion.div>
 
-      {/* Run Button */}
-      <motion.div {...cardAnim} transition={{ ...cardAnim.transition, delay: 0.16 }}>
+      {/* Section 5: Execution mode + Scheduling */}
+      <motion.div
+        {...cardAnim}
+        transition={{ ...cardAnim.transition, delay: 0.14 }}
+        className="rounded-xl border border-border bg-card p-5 shadow-sm"
+      >
+        <ScheduleBuilder
+          mode={executionMode}
+          onModeChange={setExecutionMode}
+          config={schedule}
+          onConfigChange={setSchedule}
+        />
+      </motion.div>
+
+      {/* Run / Schedule Button */}
+      <motion.div {...cardAnim} transition={{ ...cardAnim.transition, delay: 0.18 }}>
         <Button
           onClick={handleRun}
           disabled={!url || status === "running"}
@@ -278,6 +323,8 @@ export default function NewScrapeJob() {
         >
           {status === "running" ? (
             <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Scraping in progress…</>
+          ) : executionMode === "schedule" ? (
+            <><CalendarClock className="mr-2 h-4 w-4" strokeWidth={1.5} /> Save Schedule</>
           ) : (
             <><Play className="mr-2 h-4 w-4" strokeWidth={1.5} /> Run Scrape Job</>
           )}
