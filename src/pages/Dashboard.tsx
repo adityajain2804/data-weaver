@@ -1,19 +1,31 @@
 import { BarChart3, CheckCircle2, XCircle, Clock, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { StatsCard } from "@/components/StatsCard";
 import { StatusBadge } from "@/components/StatusBadge";
-import { mockJobs } from "@/lib/mock-data";
-import { useNavigate } from "react-router-dom";
+import { PipelineSummaryStrip } from "@/components/PipelineFlow";
+import { listJobs, subscribeJobs } from "@/lib/job-store";
+import type { ScrapeJob } from "@/lib/mock-data";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const recentJobs = mockJobs.slice(0, 5);
+  const [jobs, setJobs] = useState<ScrapeJob[]>(listJobs());
 
-  const totalJobs = mockJobs.length;
-  const successJobs = mockJobs.filter((j) => j.status === "success").length;
-  const failedJobs = mockJobs.filter((j) => j.status === "failed").length;
-  const successRate = ((successJobs / totalJobs) * 100).toFixed(1);
-  const avgDuration = (mockJobs.reduce((a, j) => a + j.duration, 0) / totalJobs / 1000).toFixed(1);
+  useEffect(() => {
+    setJobs(listJobs());
+    return subscribeJobs(() => setJobs(listJobs()));
+  }, []);
+
+  const recentJobs = jobs.slice(0, 5);
+  const totalJobs = jobs.length;
+  const successJobs = jobs.filter((j) => j.status === "completed" || j.status === "success").length;
+  const failedJobs = jobs.filter((j) => j.status === "failed").length;
+  const successRate = totalJobs > 0 ? ((successJobs / totalJobs) * 100).toFixed(1) : "0.0";
+  const completedDurations = jobs.filter((j) => j.duration > 0).map((j) => j.duration);
+  const avgDuration = completedDurations.length > 0
+    ? (completedDurations.reduce((a, b) => a + b, 0) / completedDurations.length / 1000).toFixed(1)
+    : "0.0";
 
   return (
     <div className="space-y-6">
@@ -45,19 +57,19 @@ export default function Dashboard() {
           {recentJobs.map((job) => (
             <button
               key={job.id}
-              onClick={() => navigate("/history")}
-              className="flex w-full items-center justify-between px-5 py-3 text-left transition-colors hover:bg-muted/50"
+              onClick={() => navigate(`/job/${job.id}`)}
+              className="flex w-full items-center justify-between gap-4 px-5 py-3 text-left transition-colors hover:bg-muted/50"
             >
-              <div className="flex items-center gap-4 min-w-0">
+              <div className="flex items-center gap-4 min-w-0 flex-1">
                 <StatusBadge status={job.status} />
                 <span className="truncate font-mono text-[13px] text-foreground">{job.url}</span>
               </div>
-              <div className="flex items-center gap-4 shrink-0">
-                <span className="font-mono text-[11px] text-muted-foreground tabular-nums">{job.duration}ms</span>
-                <span className="text-[11px] text-muted-foreground">
-                  {new Date(job.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                </span>
+              <div className="hidden md:block w-[200px] shrink-0">
+                <PipelineSummaryStrip jobId={job.id} />
               </div>
+              <span className="text-[11px] text-muted-foreground tabular-nums shrink-0">
+                {new Date(job.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              </span>
             </button>
           ))}
         </div>
