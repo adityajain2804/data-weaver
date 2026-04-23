@@ -95,20 +95,36 @@ export default function JobHistory() {
 
                       {resultView === "cards" ? (
                         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                          {mockProductData.slice(0, 3).map((product, i) => (
-                            <div key={i} className="rounded-lg border border-border bg-card p-3 space-y-1.5">
-                              <div className="flex items-start gap-2">
-                                <div className="h-8 w-8 rounded bg-muted flex items-center justify-center shrink-0">
-                                  <Package className="h-3.5 w-3.5 text-muted-foreground" />
+                          {mockProductData.slice(0, 3).map((product, i) => {
+                            const dropped = product.priceChangePct < 0;
+                            return (
+                              <button
+                                key={i}
+                                type="button"
+                                onClick={() => setSelectedProduct(product)}
+                                className="group rounded-lg border border-border bg-card p-3 space-y-1.5 text-left transition-all hover:border-primary/40 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/30"
+                              >
+                                <div className="flex items-start gap-2">
+                                  <div className="h-8 w-8 rounded bg-muted flex items-center justify-center shrink-0">
+                                    <Package className="h-3.5 w-3.5 text-muted-foreground" />
+                                  </div>
+                                  <p className="text-[12px] font-medium text-foreground leading-tight group-hover:text-primary transition-colors">
+                                    {product.title}
+                                  </p>
                                 </div>
-                                <p className="text-[12px] font-medium text-foreground leading-tight">{product.title}</p>
-                              </div>
-                              <div className="flex items-center justify-between">
-                                <span className="font-mono text-sm font-semibold text-primary">{product.price}</span>
-                                <StatusBadge status={product.availability === "In Stock" ? "success" : "pending"} />
-                              </div>
-                            </div>
-                          ))}
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-baseline gap-1.5">
+                                    <span className="font-mono text-sm font-semibold text-primary tabular-nums">{product.price}</span>
+                                    <span className={`flex items-center gap-0.5 rounded px-1 py-0.5 text-[9px] font-semibold ${dropped ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive"}`}>
+                                      {dropped ? <TrendingDown className="h-2.5 w-2.5" /> : <TrendingUp className="h-2.5 w-2.5" />}
+                                      {Math.abs(product.priceChangePct).toFixed(1)}%
+                                    </span>
+                                  </div>
+                                  <StatusBadge status={product.availability === "In Stock" ? "success" : "pending"} />
+                                </div>
+                              </button>
+                            );
+                          })}
                         </div>
                       ) : (
                         <pre className="max-h-48 overflow-auto rounded-lg border border-border bg-background p-3 font-mono text-[11px] text-foreground">
