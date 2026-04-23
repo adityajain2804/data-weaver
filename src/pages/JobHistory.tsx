@@ -152,6 +152,12 @@ export default function JobHistory() {
           ))}
         </div>
       </motion.div>
+
+      <ProductDetailDialog
+        product={selectedProduct}
+        open={selectedProduct !== null}
+        onOpenChange={(open) => !open && setSelectedProduct(null)}
+      />
     </div>
   );
 }
