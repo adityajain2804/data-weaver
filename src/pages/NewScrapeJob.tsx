@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Globe, Loader2, CheckCircle2, XCircle, ChevronDown, Info, Download, Package } from "lucide-react";
+import { Play, Globe, Loader2, CheckCircle2, XCircle, ChevronDown, Info, Download, Package, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -8,6 +8,7 @@ import { mockProductData } from "@/lib/mock-data";
 import { StatusBadge } from "@/components/StatusBadge";
 import { toast } from "sonner";
 import { DLTPipeline, type LayerStatus } from "@/components/DLTPipeline";
+import { ScheduleBuilder, type ExecutionMode, type ScheduleConfig } from "@/components/ScheduleBuilder";
 
 type ScrapeStatus = "idle" | "running" | "success" | "error";
 
