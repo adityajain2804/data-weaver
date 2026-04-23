@@ -299,8 +299,22 @@ export default function NewScrapeJob() {
         </AnimatePresence>
       </motion.div>
 
-      {/* Run Button */}
-      <motion.div {...cardAnim} transition={{ ...cardAnim.transition, delay: 0.16 }}>
+      {/* Section 5: Execution mode + Scheduling */}
+      <motion.div
+        {...cardAnim}
+        transition={{ ...cardAnim.transition, delay: 0.14 }}
+        className="rounded-xl border border-border bg-card p-5 shadow-sm"
+      >
+        <ScheduleBuilder
+          mode={executionMode}
+          onModeChange={setExecutionMode}
+          config={schedule}
+          onConfigChange={setSchedule}
+        />
+      </motion.div>
+
+      {/* Run / Schedule Button */}
+      <motion.div {...cardAnim} transition={{ ...cardAnim.transition, delay: 0.18 }}>
         <Button
           onClick={handleRun}
           disabled={!url || status === "running"}
@@ -309,6 +323,8 @@ export default function NewScrapeJob() {
         >
           {status === "running" ? (
             <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Scraping in progress…</>
+          ) : executionMode === "schedule" ? (
+            <><CalendarClock className="mr-2 h-4 w-4" strokeWidth={1.5} /> Save Schedule</>
           ) : (
             <><Play className="mr-2 h-4 w-4" strokeWidth={1.5} /> Run Scrape Job</>
           )}
