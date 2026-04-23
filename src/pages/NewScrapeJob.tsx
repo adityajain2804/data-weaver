@@ -46,6 +46,23 @@ export default function NewScrapeJob() {
   const [silverStatus, setSilverStatus] = useState<LayerStatus>("pending");
   const [goldStatus, setGoldStatus] = useState<LayerStatus>("pending");
   const [showPipeline, setShowPipeline] = useState(false);
+  const [executionMode, setExecutionMode] = useState<ExecutionMode>("trigger");
+  const [schedule, setSchedule] = useState<ScheduleConfig>(() => {
+    const d = new Date();
+    d.setMinutes(0, 0, 0);
+    d.setHours(d.getHours() + 1);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const startAt = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    return {
+      startAt,
+      recurrence: "daily",
+      weekDays: [1, 2, 3, 4, 5],
+      intervalHours: 6,
+      cronExpression: "0 9 * * 1-5",
+      durationMinutes: 30,
+      maxRunsPerWeek: 35,
+    };
+  });
 
   const userSelected = selectedFields.filter((f) => f !== "product_url");
   const usingDefaults = userSelected.length === 0;
