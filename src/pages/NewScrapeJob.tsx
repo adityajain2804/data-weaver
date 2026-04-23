@@ -90,6 +90,19 @@ export default function NewScrapeJob() {
       toast.error("Please enter a target URL");
       return;
     }
+
+    if (executionMode === "schedule") {
+      if (!schedule.startAt) {
+        toast.error("Please choose a start date & time");
+        return;
+      }
+      const startLabel = new Date(schedule.startAt).toLocaleString(undefined, {
+        month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
+      });
+      toast.success(`Schedule saved — first run ${startLabel}`);
+      return;
+    }
+
     setStatus("running");
     setShowResults(false);
     resetPipeline();
