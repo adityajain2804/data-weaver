@@ -1,22 +1,31 @@
 import { cn } from "@/lib/utils";
 
-const statusConfig = {
-  success: { label: "Success", className: "bg-success/10 text-success" },
-  failed: { label: "Failed", className: "bg-destructive/10 text-destructive" },
-  running: { label: "Running", className: "bg-primary/10 text-primary" },
-  pending: { label: "Pending", className: "bg-warning/10 text-warning" },
+type StatusBadgeProps = {
+  status?: string;
 };
 
-export function StatusBadge({ status }: { status: keyof typeof statusConfig }) {
-  const config = statusConfig[status];
+const STATUS_STYLES: Record<string, { label: string; className: string; dot: string }> = {
+  success:    { label: "Completed", className: "bg-success/15 text-success", dot: "bg-success" },
+  completed:  { label: "Completed", className: "bg-success/15 text-success", dot: "bg-success" },
+  pending:    { label: "Pending",   className: "bg-warning/15 text-warning", dot: "bg-warning" },
+  queued:     { label: "Queued",    className: "bg-warning/15 text-warning", dot: "bg-warning" },
+  running:    { label: "Running",   className: "bg-primary/10 text-primary", dot: "bg-primary animate-live-pulse" },
+  processing: { label: "Running",   className: "bg-primary/10 text-primary", dot: "bg-primary animate-live-pulse" },
+  failed:     { label: "Failed",    className: "bg-destructive/10 text-destructive", dot: "bg-destructive" },
+  cancelled:  { label: "Cancelled", className: "bg-muted text-muted-foreground", dot: "bg-muted-foreground" },
+  stopped:    { label: "Stopped",   className: "bg-muted text-muted-foreground", dot: "bg-muted-foreground" },
+};
+
+export function StatusBadge({ status }: StatusBadgeProps) {
+  const normalized = (status || "pending").toLowerCase();
+  const config = STATUS_STYLES[normalized] ?? {
+    label: normalized || "Unknown",
+    className: "bg-muted text-muted-foreground",
+    dot: "bg-muted-foreground",
+  };
   return (
     <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-medium", config.className)}>
-      <span className={cn("h-1.5 w-1.5 rounded-full", {
-        "bg-success": status === "success",
-        "bg-destructive": status === "failed",
-        "bg-primary animate-live-pulse": status === "running",
-        "bg-warning": status === "pending",
-      })} />
+      <span className={cn("h-1.5 w-1.5 rounded-full", config.dot)} />
       {config.label}
     </span>
   );
