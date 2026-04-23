@@ -7,6 +7,7 @@ import { AppLayout } from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
 import NewScrapeJob from "@/pages/NewScrapeJob";
 import JobHistory from "@/pages/JobHistory";
+import JobMonitor from "@/pages/JobMonitor";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
               <Route path="/" element={<Dashboard />} />
               <Route path="/new-job" element={<NewScrapeJob />} />
               <Route path="/history" element={<JobHistory />} />
+              <Route path="/job/:jobId" element={<JobMonitor />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
